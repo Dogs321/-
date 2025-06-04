@@ -12,6 +12,7 @@
       border-radius: 50%; 
       margin: 20px auto; 
       position: relative; 
+      transition: transform 2s ease-out;
     }
     #pointer {
       width: 0;
@@ -78,15 +79,14 @@
       const totalDegree = extraSpins * 360 + randomDegree;
       currentRotation += totalDegree;
 
-      wheel.style.transition = "transform 2s ease-out";
       wheel.style.transform = `rotate(${currentRotation}deg)`;
-
       spinBtn.disabled = true;
+
       setTimeout(() => {
         const normalized = currentRotation % 360;
         const index = Math.floor(((360 - normalized) / 360) * options.length) % options.length;
         const result = options[index];
-        document.getElementById("result").innerHTML = `결과: ${result} <br> <a href="https://sharer.kakao.com/talk/friends/picker/link?text=돌림판 결과: ${encodeURIComponent(result)}" target="_blank">카톡 공유하기</a>`;
+        document.getElementById("result").textContent = `결과: ${result}`;
         spinning = false;
         spinBtn.disabled = false;
       }, 2000);
