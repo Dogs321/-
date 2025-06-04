@@ -1,71 +1,55 @@
-docs/README.md<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="ko">
 <head>
   <meta charset="UTF-8" />
   <title>자캐팸 돌림판</title>
   <style>
     body { text-align: center; font-family: sans-serif; }
-    #wheel {
+    #wheel { 
       width: 300px; 
       height: 300px; 
       border: 10px solid #444; 
       border-radius: 50%; 
       margin: 20px auto; 
       position: relative; 
-      overflow: visible;
     }
     #pointer {
-      width: 0; 
-      height: 0; 
-      border-left: 20px solid transparent; 
-      border-right: 20px solid transparent; 
-      border-top: 30px solid red; /* 아래쪽 화살표 */
-      position: absolute; 
-      bottom: -40px; /* 아래쪽 위치 */
-      left: 50%; 
-      transform: translateX(-50%);
-      z-index: 10;
+      width: 0;
+      height: 0;
+      border-left: 20px solid transparent;
+      border-right: 20px solid transparent;
+      border-top: 30px solid red; /* 뾰족한 부분 아래로 */
+      position: absolute;
+      top: 300px;  /* 원 아래에 붙도록 */
+      left: 120px;
     }
-    button { font-size: 16px; padding: 10px 20px; margin-top: 20px;}
-    #shareBtn {
-      display: none;
-      margin-top: 10px;
-      padding: 8px 15px;
-      font-size: 14px;
-      background-color: #3b5998;
-      color: white;
-      border: none;
-      border-radius: 5px;
-      cursor: pointer;
-    }
+    button { font-size: 16px; padding: 10px 20px; margin-top: 20px; }
   </style>
 </head>
 <body>
   <h1>자캐팸 랜덤 돌림판</h1>
   <div id="wheel">
-    <canvas id="canvas" width="300" height="300"></canvas>
     <div id="pointer"></div>
+    <canvas id="canvas" width="300" height="300"></canvas>
   </div>
-  <button id="spinBtn" onclick="spin()">돌리기!</button>
+  <button id="spinBtn">돌리기!</button>
   <p id="result"></p>
-  <button id="shareBtn" onclick="shareKakao()">카톡으로 결과 공유하기</button>
 
   <script>
     const options = [
       "공격 성공", "공격 성공", "공격 성공", "공격 성공",
-      "공격 실패",
-      "실수", "실수",
-      "크리티컬"
+      "공격 실패", "실수", "실수", "크리티컬"
     ];
-
     const canvas = document.getElementById("canvas");
     const ctx = canvas.getContext("2d");
     const arc = 2 * Math.PI / options.length;
-    let currentAngle = 0;
+    const wheel = document.getElementById("wheel");
+    const spinBtn = document.getElementById("spinBtn");
     let spinning = false;
-    let lastResult = "";
+    let currentRotation = 0;
 
     function drawWheel() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
       for (let i = 0; i < options.length; i++) {
         const angle = i * arc;
         ctx.beginPath();
@@ -78,6 +62,7 @@ docs/README.md<!DOCTYPE html>
         ctx.rotate(angle + arc / 2);
         ctx.fillStyle = "#000";
         ctx.font = "14px sans-serif";
+        ctx.textAlign = "center";
         ctx.fillText(options[i], 60, 5);
         ctx.restore();
       }
@@ -86,37 +71,28 @@ docs/README.md<!DOCTYPE html>
     drawWheel();
 
     function spin() {
-      if (spinning) return;
+      if (spinning) return;  // 이미 돌고 있으면 무시
       spinning = true;
-      document.getElementById("spinBtn").disabled = true;
-      document.getElementById("shareBtn").style.display = "none";
-      document.getElementById("result").textContent = "";
+      const extraSpins = 5; // 몇 바퀴 돌지
+      const randomDegree = Math.random() * 360;
+      const totalDegree = extraSpins * 360 + randomDegree;
+      currentRotation += totalDegree;
 
-      const extraRotation = Math.random() * 360;
-      const rotation = 1080 + extraRotation;
-      currentAngle += rotation;
+      wheel.style.transition = "transform 2s ease-out";
+      wheel.style.transform = `rotate(${currentRotation}deg)`;
 
-      canvas.style.transition = "transform 1.5s ease-out";
-      canvas.style.transform = `rotate(${currentAngle}deg)`;
-
-      const normalized = currentAngle % 360;
-      const index = Math.floor(((360 - normalized) / 360) * options.length);
-      const result = options[index % options.length];
-      lastResult = result;
-
+      spinBtn.disabled = true;
       setTimeout(() => {
-        document.getElementById("result").innerText = `결과: ${result}`;
+        const normalized = currentRotation % 360;
+        const index = Math.floor(((360 - normalized) / 360) * options.length) % options.length;
+        const result = options[index];
+        document.getElementById("result").innerHTML = `결과: ${result} <br> <a href="https://sharer.kakao.com/talk/friends/picker/link?text=돌림판 결과: ${encodeURIComponent(result)}" target="_blank">카톡 공유하기</a>`;
         spinning = false;
-        document.getElementById("spinBtn").disabled = false;
-        document.getElementById("shareBtn").style.display = "inline-block";
-      }, 1500);
+        spinBtn.disabled = false;
+      }, 2000);
     }
 
-    function shareKakao() {
-      const text = encodeURIComponent(`돌림판 결과: ${lastResult}`);
-      const kakaoUrl = `https://sharer.kakao.com/talk/friends/picker/link?text=${text}`;
-      window.open(kakaoUrl, '_blank');
-    }
+    spinBtn.addEventListener("click", spin);
   </script>
 </body>
 </html>
